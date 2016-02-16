@@ -17,6 +17,7 @@ package go_kafka_client
 
 import (
 	"regexp"
+	"strings"
 )
 
 const (
@@ -34,7 +35,15 @@ func (wl *WhiteList) Regex() string {
 }
 
 func (wl *WhiteList) TopicAllowed(topic string, excludeInternalTopics bool) bool {
-	return wl.compiledRegex.MatchString(topic) && !(topic == offsetsTopicName && excludeInternalTopics)
+	list := strings.Split(wl.rawRegex, ",")
+	for _, item := range list {
+		new_wl := NewWhiteList(item)
+		if new_wl.compiledRegex.MatchString(topic) && !(topic == offsetsTopicName && excludeInternalTopics) {
+			return true
+		}
+	}
+
+	return false
 }
 
 //Creates a new WhiteList topic filter for a given regex
